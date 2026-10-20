@@ -134,7 +134,7 @@ nextflow run annotation_pipeline.nf --input=input.csv --name=chlam_run \
 
 # 3. launch the webapp on the results
 bash bin/zdb webapp --name=chlam_run --conda --dir=$(pwd) \
-    --allowed_host=.app.github.dev \
+    --allowed_host="localhost,127.0.0.1,.app.github.dev" \
     --trusted_origins="https://${CODESPACE_NAME}-8080.app.github.dev"
 ```
 
@@ -144,6 +144,12 @@ Notes:
 - `-resume` re-runs an interrupted analysis without redoing completed tasks.
 - Docker and singularity are disabled in the commands above; keep them like this unless
   these tools are actually available.
+- `--allowed_host` values must be **comma-separated in one quoted string** (the wrapper
+  expands its arguments unquoted, so spaces would break them into separate arguments).
+  `localhost` **must** be included: the Codespaces port proxy forwards requests with
+  `Host: localhost:8080`, and Django otherwise rejects them with `DisallowedHost`.
+- The first launch builds the `webapp` conda environment (several minutes) — it is
+  cached afterwards. Make sure ~3 GB of disk is free.
 
 
 To have a more complete set of analyses (includes cog and pfam annotation):
