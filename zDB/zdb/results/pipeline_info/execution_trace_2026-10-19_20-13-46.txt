@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	a4/316fdd	30176	setup_base_db	COMPLETED	0	2026-10-19 20:13:52.001	3m 35s	3m 30s	1.2%	96.9 MB	428.3 MB	70.5 MB	12.7 MB
