@@ -1,3 +1,26 @@
-zDB/
+## Heavy / regenerable artifacts are excluded from version control:
+# nextflow work cache (GBs, resume-only), conda environments, apptainer images,
+# runtime logs, webapp symlinks. Everything else (code, docs, test data,
+# results, databases) is saved.
+
+zDB/.git-nested/
+zDB/work/
+zDB/env/
+zDB/conda-env/
+zDB/singularity/
+zDB/.nextflow*
+zDB/conda_log
+zDB/webapp/served_assets/
+zDB/webapp/lib/
+zDB/**/*.pyc
+zDB/**/__pycache__/
+zDB/**/*~
+zDB/zdb/gunicorn/gunicorn.log
+zDB/zdb/gunicorn/gunicorn.pid
+zDB/zdb/nginx/*.log
+zDB/zdb/nginx/nginx_curr.config
+zDB/zdb/nginx/var
+
 __pycache__/
+*.pyc
 *.log
