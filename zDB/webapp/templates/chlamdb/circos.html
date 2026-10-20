@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  {% load custom_tags %}
+  {% load static %}
+  {% load crispy_forms_tags %}
+
+  <link rel="stylesheet" type="text/css" href="{% static 'css/circos.css' %}" />
+  <script type="module">
+    import { Context } from 'https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.esm.js';
+    window.SVGContext = Context;
+  </script>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css">
+  {% include "chlamdb/header.html" %}
+</head>
+
+<body>
+  <div class="container-fluid" id="main_container">
+    <div class="row">
+      <div id="wrapper">
+        <div id="page-content-wrapper">
+          <div class="row">
+            <div class="col-lg-12">
+              {% include "chlamdb/menu.html" %}
+              <p class="page-title">
+                <b>Circos plots indicating the presence/absence of homologous proteins in one or multiple other genomes </b>
+                <a href="https://zdb.readthedocs.io/en/latest/tutorial/website.html#genome-alignments" id="show-option" target="_blank"  title="Get a Circos plot to compare genomes (Targets) and visualize the presence/absence of homologous proteins according to the selected reference one (Circos reference)">
+                  <i class="fab fa-info-circle " style="size: 5em;" ></i>
+                </a>
+              </p>
+              {% block content %}
+                {% csrf_token %}
+                {% crispy form %}
+              {% endblock %}
+            </div>
+
+            {% if show_results %}
+              <div class="row">
+                <div class="col-lg-12">
+                  <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                    <br>
+                    <div class="panel panel-success" style="width:100%; top: 200px ; margin: 10px 10px 10px 10px">
+                      <div class="panel-heading" style="width:100%">
+                        <h3 class="panel-title">Info about the analysis</h3>
+                      </div>
+                      <div style="padding-left:20px">
+                        <br>
+                        The circos map shows the follwing information in the tracks from outer to inner:
+                        <ul id="circos_ul" style="list-style-type:disc;">
+                          <li>
+                            Barplots indicating the prevalence of each orthogroup in the whole database.
+                          </li>
+                          {% if with_gi %}
+                            <li>
+                              Genomic islands
+                            </li>
+                          {% endif %}
+                          <li>
+                            The contigs (and sequence when zooming in) of the reference genome.
+                          </li>
+                          <li>
+                             the loci on the two strands of the reference genome. Coloring scheme can be chosen in the menu below the map. 
+                          </li>
+                          <li>
+                            The corresponding loci (highest sequence identity in the same orthogroup) for all the target genomes.                          </li>
+                          <li>
+                            GC content of the reference genome.
+                          </li>
+                          <li>
+                            GC skew of the reference genome.
+                          </li>
+                          <br>
+                          Hover over any feature in the map to get more detailed information and 
+                          click on a loci{% if with_gi %}, genomic island {% endif %} or orthogroup to open 
+                          a new browser tab with the corresponding detailed view.
+                          <br>
+                        </ul>
+                      </div>
+                    </div>
+                    <div id='circos_plot' style="width:100%; top: 200px ; margin: 10px 10px 10px 10px"></div>
+                    <div class="cgv-controls">
+                      <div class="cgv-btn" id="btn-reset" title="Reset Map">test1</div>
+                      <div class="cgv-btn" id="btn-zoom-in" title="Zoom In"></div>
+                      <div class="cgv-btn" id="btn-zoom-out" title="Zoom Out"></div>
+                      <div class="cgv-btn" id="btn-move-left" title="Move Left/Counterclockwise"></div>
+                      <div class="cgv-btn" id="btn-move-right" title="Move Right/Clockwise"></div>
+                      <div class="cgv-btn" id="btn-toggle-format" title="Toggle Linear/Circular Format"></div>
+                      <div class="cgv-btn" id="btn-invert-colors" title="Invert Map Colors"></div>
+                      <div class="dropdown" style="display: inline-block; position: relative;">
+                        <div class="cgv-btn" id="btn-download" title="Download Map"></div>
+                        <div id="download-dropdown" class="dropdown-content">
+                          <div id="download-png">PNG</div>
+                          <div id="download-svg">SVG</div>
+                        </div>
+                      </div>
+                      <div class="cgv-btn" id="btn-toggle-labels" title="Toggle Labels"></div>
+
+                      <div>
+                        <label for="ref_coloring" style="margin-left: 10px">Ref. genome color map:</label>
+
+                        <select name="ref_coloring" id="ref_colors">
+                          {% if with_highlighted_loci %}
+                            <option selected value="highlighted">Highlighted</option>
+                            <option value="type">Locus type</option>
+                          {% else %}
+                            <option selected value="type">Locus type</option>
+                          {% endif %}
+                          {% if with_amr %}
+                            <option value="AMR">AMR</option>
+                          {% endif %}
+                          {% if with_vf %}
+                            <option value="VF">VF</option>
+                          {% endif %}
+                        </select> 
+                      </div>
+
+                      <div>
+                        <label for="visible_tracks" style="vertical-align:top; margin-left: 10px">visible tracks</label>
+                        <select name="visible_tracks" id="visible_tracks" multiple >
+                          <option selected value="prevalence">Prevalence</option>
+                          {% if with_gi %}
+                            <option selected value="Genomic island">Genomic island</option>
+                          {% endif %}
+                          <option selected value="GC Content">GC Content</option>
+                          <option selected value="GC Skew">GC Skew</option>
+                        </select> 
+                      </div>
+                    </div>
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+{% include "chlamdb/style_menu.html" %}
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+  if ( "{{show_results}}" === "" ) {
+    return;
+  }
+  // Create Viewer
+  cgv = new CGView.Viewer('#circos_plot', {
+    height: 0.8*window.innerHeight,
+    width: document.getElementById('tabs').offsetWidth,
+    SVGContext: window.SVGContext,
+  });
+  // Load data
+  cgv.io.loadJSON({{circos_json| safe}});
+  // Custom highlighter to hide certain metadata fields and display the unmapped name
+  // when it was mapped for the label.
+  cgv.highlighter.feature.popoverContents = function(e) {
+    const feature = e.element;
+    const fullLength = feature.length !== feature.fullLength ? `(${window.CGView.utils.commaNumber(feature.fullLength)} bp)` : '';
+    const filtered_meta = Object.fromEntries(Object.entries(feature.meta).filter(([key, value]) => !(['highlighted', 'unmapped_name'].includes(key))))
+    return (`
+      <div style='margin: 0 5px; font-size: 14px'>
+        <div>${feature.type}: ${feature.meta.unmapped_name || feature.name}<div>
+        <div class='track-data'>Length: ${window.CGView.utils.commaNumber(feature.length)} bp ${fullLength}</div>
+        ${window.CGView.Highlighter.getMetaDivs(feature.qualifiers)}
+        ${window.CGView.Highlighter.getMetaDivs(filtered_meta)}
+        ${window.CGView.Highlighter.getTrackDiv(e)}
+      </div>
+    `);
+  };
+  cgv.addTracks({
+    name: 'GC Content',
+    position: 'inside',
+    dataType: 'feature',
+    dataMethod: 'sequence',
+    dataKeys: 'gc-content',
+    dataOptions: {
+      step: 100,
+      window: 1000
+    }
+  });
+  cgv.addTracks({
+    name: 'GC Skew',
+    position: 'inside',
+    dataType: 'feature',
+    dataMethod: 'sequence',
+    dataKeys: 'gc-skew',
+    dataOptions: {
+      step: 100,
+      window: 1000
+    }
+  });
+  cgv.on('click', (event) => {
+    if (event.elementType === 'feature') {
+      const name = event.element.meta.unmapped_name || event.element.name
+      if (['targets', 'reference'].includes(event.slot.track.name)) {
+        window.open(`/locusx/${name}`)
+      }
+      else if (event.slot.track.name === 'Prevalence') {
+        window.open(`/orthogroup/${name}`)
+      }
+      else if (event.slot.track.name === 'Genomic island') {
+        window.open(`/genomic_island/${name.substring(2)}`)
+      }
+    }
+  });
+
+  onClick = function(id, func) {
+    const btn = document.getElementById(id);
+    btn.addEventListener('click', func);
+  };
+
+  onClick('btn-reset', () => {
+    cgv.reset();
+  });
+
+  onClick('btn-zoom-in', () => {
+    cgv.zoomIn()
+  });
+  onClick('btn-zoom-out', () => {
+    cgv.zoomOut()
+  });
+
+  onClick('btn-move-left', () => {
+    cgv.moveLeft();
+  });
+
+  onClick('btn-move-right', () => {
+    cgv.moveRight();
+  });
+
+  onClick('btn-toggle-format', () => {
+    const format = (cgv.format == 'circular') ? 'linear' : 'circular';
+    cgv.settings.update({ format: format });
+    cgv.draw();
+  });
+
+  onClick('btn-invert-colors', () => {
+    cgv.invertColors();
+  });
+
+  onClick('btn-download', () => {
+    document.getElementById("download-dropdown").classList.toggle("show");
+  })
+
+  onClick('download-png', () => {
+      const height = 2000;
+      const width = cgv.width / cgv.height * height;
+      cgv.io.downloadImage(width, height, 'cgview_map.png');
+      document.getElementById("download-dropdown").classList.remove("show");
+  })
+
+  onClick('download-svg', () => {
+      cgv.io.downloadSVG('cgview_map.svg');
+      document.getElementById("download-dropdown").classList.remove("show");
+  })
+
+  //Close dropdown when clicking outside
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById("download-dropdown");
+    const btn = document.getElementById("btn-download");
+    if (!dropdown.contains(event.target) && event.target !== btn) {
+      dropdown.classList.remove("show");
+    }
+  });
+
+  onClick('btn-toggle-labels', () => {
+    cgv.annotation.update({visible: !cgv.annotation.visible});
+    cgv.draw();
+  });
+
+  // Add event listener for reference coloring scheme select menu
+  document.getElementById('ref_colors').addEventListener('change', function() {
+    const selected = this.value;
+    const ref = cgv.tracks("reference");
+
+    if (selected === "type") {
+      get_legend = function(feature) {
+        return feature.type
+      };
+    }
+    else {
+      get_legend = function(feature) {
+        return `${selected} ${feature._meta[selected]}`
+      };
+    }
+
+    to_hide = new Set()
+    to_show = new Set()
+    ref.features().forEach(function(feature) {
+      to_hide.add(feature.legend)
+      new_legend = get_legend(feature)
+      to_show.add(new_legend)
+      feature.update({"legendItem": new_legend})
+    });
+    to_hide.forEach(function(item) {
+      item.visible = false;
+    })
+    to_show.forEach(function(name) {
+      cgv.legend.findLegendItemByName(name).visible = true;
+    })
+    cgv.draw();
+  });
+
+  // Add event listener for visible tracks
+  document.getElementById('visible_tracks').addEventListener('change', function() {
+    const selected = Array.from(this.selectedOptions).map(opt => opt.value);
+    const optionValues = Array.from(this.options).map(opt => opt.value);
+
+    optionValues.forEach(function(trackName) {
+      // Set track visibility
+      const track = cgv.tracks(trackName);
+      visible = selected.includes(trackName)
+      track.visible = visible;
+      
+      // Set legendItem visibility
+      if (trackName === "GC Skew") {
+        legendItem = cgv.legend.findLegendItemByName(trackName + "+")
+        legendItem.visible = visible;
+        legendItem = cgv.legend.findLegendItemByName(trackName + "-")
+        legendItem.visible = visible;
+      }
+      else {
+        const legendItem = cgv.legend.findLegendItemByName(trackName)
+        legendItem.visible = visible;
+      }
+
+      // Set label visibility
+      gi_visible = selected.includes("Genomic island")
+      og_visible = selected.includes("prevalence")
+      cgv.annotation.labels().forEach(function(label){
+        type = label.feature.type
+        if (type === "genomic island") {
+          label.feature.visible = gi_visible
+        }
+        else if (type === "OG") {
+          label.feature.visible = og_visible
+        }
+      })
+    });
+  cgv.draw();
+});
+
+  cgv.reset();
+  cgv.draw();
+});
+
+</script>
+
+<style>
+  #download-dropdown.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    left: 100%;
+    top: 0;
+    padding: 2px;
+    z-index: 1;
+  }
+
+  #download-dropdown.dropdown-content div {
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  #download-dropdown.dropdown-content div:hover {
+    background-color: #589dec;
+  }
+  
+  .show {display:block;}
+</style>
+</html>

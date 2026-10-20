@@ -1,0 +1,28 @@
+name: webapp
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - python=3.10
+    - ete4
+    - plotly
+    - pandas
+    - seaborn
+    - django>=4
+    - biopython>=1.80,<1.86
+    - matplotlib
+    - celery
+    - django-crispy-forms=1.14.0
+    - django-extensions
+    - reportlab
+    - gunicorn
+    - werkzeug
+    - scipy
+    - Whoosh
+    - pyqt6
+    - bibtexparser
+    - blast>=2.9.0
+    - django-autocomplete-light
+    - pip
+    - pip:
+        - scoary-2

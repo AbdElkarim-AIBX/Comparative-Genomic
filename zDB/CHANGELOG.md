@@ -1,0 +1,356 @@
+# Changelog
+
+
+Versions are of the form MAJOR.MINOR.PATCH and this changelog tries to conform
+to [Common Changelog](https://common-changelog.org)
+
+## Unreleased
+
+### Fixed
+
+- Fix circos plot sometimes raising an error. ([#235](https://github.com/metagenlab/zDB/pull/235)) (Niklaus Johner)
+
+### Changed
+
+- Migrate from ete3 to ete4. ([#230](https://github.com/metagenlab/zDB/pull/230)) (Niklaus Johner)
+- Make most phylogenetic trees interactive. ([#231](https://github.com/metagenlab/zDB/pull/231)) (Niklaus Johner)
+
+### Added
+
+## 1.3.12 - 2026-05-06
+
+### Fixed
+
+- Fix issue where contigs with multiple accessions due to revisions were not displayed in the plotregion. ([#217](https://github.com/metagenlab/zDB/pull/217)) (Bastian Marquis)
+- Prevent crashes in the locus page for CDS in contigs without topology qualifier. ([#215](https://github.com/metagenlab/zDB/pull/215)) (Bastian Marquis)
+- Bump checkm-genome container to 1.2.3 to fix incompatibility with numpy 2. ([#224](https://github.com/metagenlab/zDB/pull/224)) (Niklaus Johner)
+- Bump checkm-genome container to 1.2.5 to fix issues with setuptools. ([#227](https://github.com/metagenlab/zDB/pull/227)) (Niklaus Johner)
+- Fix loading of KO hits when there is an inconsistency between the KEGG REST API and the ko_list. ([#225](https://github.com/metagenlab/zDB/pull/225)) (Niklaus Johner)
+- Use biopython version still containing the Bio.Application modules in webapp environment. ([#226](https://github.com/metagenlab/zDB/pull/226)) (Niklaus Johner)
+- Pin nextflow to <26.04 to avoid strict syntax. ([#226](https://github.com/metagenlab/zDB/pull/226)) (Niklaus Johner)
+
+### Added
+
+- Protect against crawlers indexing the web application. ([#222](https://github.com/metagenlab/zDB/pull/222)) (Niklaus Johner)
+
+## 1.3.11 - 2025-10-28
+
+### Fixed
+
+- Make sure that all reference DB files get published and not a symlink. ([#209](https://github.com/metagenlab/zDB/pull/209)) (Niklaus Johner)
+- Re-add JS libraries accidentally removed and fix various small JS errors. ([#196](https://github.com/metagenlab/zDB/pull/196)) (Niklaus Johner)
+- Fix broken links for genomic islands and features with a mapped label on circos map. ([#198](https://github.com/metagenlab/zDB/pull/198)) (Niklaus Johner)
+- Fix genomic island prediction for short contigs ([#200](https://github.com/metagenlab/zDB/pull/200)) (Niklaus Johner)
+
+### Changed
+
+- Set resources adapted to each process in the nf-core style. ([#205](https://github.com/metagenlab/zDB/pull/205)) (Niklaus Johner)
+- Use larger step for GC content and skew in circos map. ([#197](https://github.com/metagenlab/zDB/pull/197)) (Niklaus Johner)
+- Update workflow diagrams in documentation to include GI prediction. ([#201](https://github.com/metagenlab/zDB/pull/201)) (Niklaus Johner)
+
+### Added
+
+- Add RefSeq homologs tab to orthogroup view. ([#203](https://github.com/metagenlab/zDB/pull/203)) (Niklaus Johner)
+- Add RefSeq best hit phylogeny to the CLI. ([#203](https://github.com/metagenlab/zDB/pull/203)) (Niklaus Johner)
+- Add possibility to download an SVG of the circos map. ([#199](https://github.com/metagenlab/zDB/pull/199)) (Niklaus Johner)
+
+## 1.3.10 - 2025-09-03
+
+### Fixed
+
+- Fix circos view for contigs shorter than 1000bp. ([#194](https://github.com/metagenlab/zDB/pull/194)) (Niklaus Johner)
+
+### Changed
+
+- Improve labels and setting custom labels on circos map. ([#194](https://github.com/metagenlab/zDB/pull/194)) (Niklaus Johner)
+- Improve styling of hit extraction view. ([#195](https://github.com/metagenlab/zDB/pull/195)) (Niklaus Johner)
+
+## 1.3.9 - 2025-09-01
+
+### Fixed
+
+- Fix highlighting of orthogroups in circos_main. ([#190](https://github.com/metagenlab/zDB/pull/190)) (Niklaus Johner)
+
+### Changed
+
+- Update orthofinder to version 3.1 to speed-up annotation pipeline. ([#188](https://github.com/metagenlab/zDB/pull/188)) (Niklaus Johner)
+- Improve circos plots by making them interactive. ([#190](https://github.com/metagenlab/zDB/pull/190)) (Niklaus Johner)
+- Allow switching certain tracks on/off on the circos map. ([#191](https://github.com/metagenlab/zDB/pull/191)) (Niklaus Johner)
+
+### Added
+
+- Add possibility to display GIs, AMRs and VFs on circos map. ([#191](https://github.com/metagenlab/zDB/pull/191)) (Niklaus Johner)
+- Add loci highlighting and custom labels to circos map. ([#192](https://github.com/metagenlab/zDB/pull/192)) (Niklaus Johner)
+- Allow highlighting various types of entries in circos map. ([#193](https://github.com/metagenlab/zDB/pull/193)) (Niklaus Johner)
+- Add buttons on locus view and most extraction views to display corresponding entries on circos map. ([#193](https://github.com/metagenlab/zDB/pull/193)) (Niklaus Johner)
+
+## 1.3.8 - 2025-07-15
+
+### Fixed
+
+- Fix presence in DB column in hit extraction view. ([#185](https://github.com/metagenlab/zDB/pull/185)) (Niklaus Johner)
+- Fix circos plot sometimes raising an error. ([#183](https://github.com/metagenlab/zDB/pull/183)) (Niklaus Johner)
+- Fix annotation pipeline for input file with .genbank extensions. ([#181](https://github.com/metagenlab/zDB/pull/181)) (Niklaus Johner)
+
+### Changed
+
+- Add KO, COG and their descriptions to detail table in OG extract view. ([#186](https://github.com/metagenlab/zDB/pull/186)) (Niklaus Johner))
+- Rename "N plasmid contigs" column to "Has plasmid(s)" in genome table. ([#184](https://github.com/metagenlab/zDB/pull/184)) (Niklaus Johner))
+- Color genes as AMR if they are annotated as both AMR and VF in GI genomic region.([#180](https://github.com/metagenlab/zDB/pull/180)) (Niklaus Johner)
+
+### Added
+
+- Add button to download the data as CSV on category barplot views. ([#187](https://github.com/metagenlab/zDB/pull/187)) (Niklaus Johner))
+
+## 1.3.7 - 2025-05-06
+
+### Fixed
+
+- Display correct GI ID in locus view. ([#175](https://github.com/metagenlab/zDB/pull/175)) (Niklaus Johner)
+
+### Added
+
+- Highlight AMR and VF genes in genomic island representations. ([#174](https://github.com/metagenlab/zDB/pull/174)) (Niklaus Johner)
+
+
+## 1.3.6 - 2025-05-02
+
+### Fixed
+
+- Fix displaying genomic islands in locus view. ([#160](https://github.com/metagenlab/zDB/pull/160)) (Niklaus Johner)
+- Make sure to add run to list of completed run upon import. ([#163](https://github.com/metagenlab/zDB/pull/163)) (Niklaus Johner)
+- Fix bug in genomic_region.js for very small regions. ([#171](https://github.com/metagenlab/zDB/pull/171)) (Niklaus Johner)
+
+### Added
+
+- Add orthogroups to genomic island cluster overview. ([#173](https://github.com/metagenlab/zDB/pull/173)) (Niklaus Johner)
+- Add genomic island prediction consistency and clustering to analysis pipeline. ([#162](https://github.com/metagenlab/zDB/pull/162)) (Niklaus Johner)
+- Add genomic island visualizations. ([#165](https://github.com/metagenlab/zDB/pull/165)) (Niklaus Johner)
+- Add script to export a loci map between genomes. ([#170](https://github.com/metagenlab/zDB/pull/170)) (Niklaus Johner)
+
+## 1.3.5 - 2025-03-26
+
+### Fixed
+
+- Fix circos view. ([#158](https://github.com/metagenlab/zDB/pull/158)) (Trestan Pillonel)
+- Fix import errors in pipelines when using docker or singularity. ([#159](https://github.com/metagenlab/zDB/pull/159)) (Niklaus Johner)
+- Use up to date KEGG database as reference. ([#157](https://github.com/metagenlab/zDB/pull/157)) (Niklaus Johner)
+- Fix SQL queries for libsqlite 3.49.1. ([#151](https://github.com/metagenlab/zDB/pull/151)) (Niklaus Johner)
+- Fix accession in contig tab of locusx view. ([#153](https://github.com/metagenlab/zDB/pull/153)) (Niklaus Johner)
+
+### Changed
+
+- Use conda instead of mamba for environment creation. ([#156](https://github.com/metagenlab/zDB/pull/156)) (Niklaus Johner)
+- Setup zdb base DB with zdb setup command. ([#154](https://github.com/metagenlab/zDB/pull/154)) (Niklaus Johner)
+- Cite zDB paper on home page and about pages. ([#147](https://github.com/metagenlab/zDB/pull/147)) (Niklaus Johner)
+
+### Added
+
+- Add basic views for genomic islands (entry list and details view). ([#158](https://github.com/metagenlab/zDB/pull/158)) (Niklaus Johner)
+- Add genomic island prediction to annotation pipeline. ([#158](https://github.com/metagenlab/zDB/pull/158)) (Niklaus Johner)
+- Add command line parameter to set CSRF_TRUSTED_ORIGINS. ([#145](https://github.com/metagenlab/zDB/pull/145)) (Niklaus Johner)
+
+## 1.3.4 - 2024-11-06
+
+### Fixed
+
+- Fix annotation pipeline for new AMRFinder version 4. ([#141](https://github.com/metagenlab/zDB/pull/141)) (Niklaus Johner)
+- Fix DB setup pipeline when using containers and an unmounted reference directory. ([#142](https://github.com/metagenlab/zDB/pull/142)) (Niklaus Johner)
+
+### Changed
+
+- Display Venn diagram as Edwards for 6 genomes, as numbers were missing in the classic representation. ([#135](https://github.com/metagenlab/zDB/pull/135)) (Niklaus Johner)
+- Add contig accession and range to genomic regions in plot_region. ([#134](https://github.com/metagenlab/zDB/pull/134)) (Niklaus Johner)
+- Improve error handling for missing input genomes and reference databases. ([#130](https://github.com/metagenlab/zDB/pull/130)) (Niklaus Johner)
+- Optimize order of regions in plot_region. ([#137](https://github.com/metagenlab/zDB/pull/137)) (Niklaus Johner)
+- Improve region edge representations in plot_region. ([#138](https://github.com/metagenlab/zDB/pull/138)) (Niklaus Johner)
+- Add contig table to genome overview (extract_contig view). ([#139](https://github.com/metagenlab/zDB/pull/139)) (Niklaus Johner)
+- Clean-up css files. ([#140](https://github.com/metagenlab/zDB/pull/140)) (Niklaus Johner)
+
+### Added
+
+- Add contig card to locusx view. ([#136](https://github.com/metagenlab/zDB/pull/136)) (Niklaus Johner)
+- Add option to highlight certain leaves in custom plots. ([#131](https://github.com/metagenlab/zDB/pull/131)) (Niklaus Johner)
+- Add script to export loci annotation tables. ([#143](https://github.com/metagenlab/zDB/pull/143)) (Niklaus Johner)
+
+
+## 1.3.3 - 2024-08-08
+
+### Fixed
+
+- Fix Kegg based comparative analysis form. ([#123](https://github.com/metagenlab/zDB/pull/123)) (Niklaus Johner)
+- Add missing assets when running webapp with nginx and gunicorn. ([#122](https://github.com/metagenlab/zDB/pull/122)) (Niklaus Johner)
+- Fix checkm conda environment. ([#121](https://github.com/metagenlab/zDB/pull/121)) (Niklaus Johner)
+
+
+## 1.3.2 - 2024-07-30
+
+### Fixed
+
+- Fix annotation pipeline for nextflow version > 24.03. ([#120](https://github.com/metagenlab/zDB/pull/120)) (Niklaus Johner)
+
+## 1.3.1 - 2024-07-19
+
+### Fixed
+
+- Fix binding of folders when running with singularity. ([#116](https://github.com/metagenlab/zDB/pull/116)) (Niklaus Johner)
+- Fix checkM conda environment. ([#114](https://github.com/metagenlab/zDB/pull/114)) (Niklaus Johner)
+- Fix AMRFinderPlus database update for Linux. ([#113](https://github.com/metagenlab/zDB/pull/113)) (Niklaus Johner)
+- Fix AMRFinderPlus database update for Linux. ([#113](https://github.com/metagenlab/zDB/pull/113)) (Niklaus Johner)
+- Update containers zDB release v 1.3. ([#112](https://github.com/metagenlab/zDB/pull/112)) (Niklaus Johner)
+
+
+## 1.3.0 - 2024-07-11 (broken release as containers are outdated)
+
+### Changed
+
+- Update the documentation. ([#110](https://github.com/metagenlab/zDB/pull/110)) (Niklaus Johner)
+- Execute tblastn search against the fna (contigs) database. ([#106](https://github.com/metagenlab/zDB/pull/106)) (Niklaus Johner)
+- Handle groups when selecting genomes wherever pertinent. ([#84](https://github.com/metagenlab/zDB/pull/84) and [#85](https://github.com/metagenlab/zDB/pull/85)) (Niklaus Johner)
+- Allow using groups to define phenotype in GWAS view. ([#82](https://github.com/metagenlab/zDB/pull/82)) (Niklaus Johner)
+- Display form validation errors next to the corresponding fields. ([#83](https://github.com/metagenlab/zDB/pull/83)) (Niklaus Johner)
+- Filter VF hits by SeqID and coverage and keep one hit per locus. ([#77](https://github.com/metagenlab/zDB/pull/77)) (Niklaus Johner)
+- Improve layout for various views, making better use of available space. ([#70](https://github.com/metagenlab/zDB/pull/70)) (Niklaus Johner)
+- Configure repository to publish the docs to [readthedocs](https://zdb.readthedocs.io)
+- Port nextflow pipelines to DSL2 language. ([#26](https://github.com/metagenlab/zDB/pull/26)) (Niklaus Johner)
+- Add CHANGELOG file. ([#25](https://github.com/metagenlab/zDB/pull/25)) (Niklaus Johner)
+- Imported metagenlab_lib code into zdb (https://github.com/metagenlab/zDB/pull/33) (Bastian Marquis)
+- Removed eutils module. ([#47](https://github.com/metagenlab/zDB/pull/47)) (Niklaus Johner)
+- Show xaxis labels (as links) in heatmap view. ([#59](https://github.com/metagenlab/zDB/pull/59)) (Niklaus Johner)
+- Remove unused html templates. ([#61](https://github.com/metagenlab/zDB/pull/61)) (Niklaus Johner)
+
+### Added
+
+- Add button to blast protein sequence in the locus overview. ([#104](https://github.com/metagenlab/zDB/pull/104)) (Niklaus Johner)
+- Integrate link to paper blast in the locus overview. ([#103](https://github.com/metagenlab/zDB/pull/103)) (Niklaus Johner)
+- Add button to draw custom phylogeny from selection of entries in various tables. ([#92](https://github.com/metagenlab/zDB/pull/92)) (Niklaus Johner)
+- Add buttons to download protein and DNA sequences in homologs tables. ([#89](https://github.com/metagenlab/zDB/pull/89)) (Niklaus Johner)
+- Control data exports from tables by making rows selectable. ([#88](https://github.com/metagenlab/zDB/pull/88)) (Niklaus Johner)
+- Add views to add, delete, and display groups. ([#86](https://github.com/metagenlab/zDB/pull/86)) (Niklaus Johner)
+- Allow defining groups of genomes in input file. ([#82](https://github.com/metagenlab/zDB/pull/82)) (Niklaus Johner)
+- Add view to produce custom plots (phylogenetic trees and table). ([#78](https://github.com/metagenlab/zDB/pull/78)) (Niklaus Johner)
+- Add AMRs and VFs to search index. ([#73](https://github.com/metagenlab/zDB/pull/73)) (Niklaus Johner)
+- Add VFs to locus and orthogroup views. ([#71](https://github.com/metagenlab/zDB/pull/71)) (Niklaus Johner)
+- Add new statistics to home view. ([#70](https://github.com/metagenlab/zDB/pull/70)) (Niklaus Johner)
+- Add GWAS views. The associations are calculated using Scoary2. ([#62](https://github.com/metagenlab/zDB/pull/62)) (Niklaus Johner)
+- Add VF details view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF accumulation/rarefaction plot view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF heatmap view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF tabular comparison views. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF Venn diagram view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF hit extraction view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF comparison index view and link it in the menu and home page. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add VF entry list view. ([#58](https://github.com/metagenlab/zDB/pull/58)) (Niklaus Johner)
+- Add virulence factor annotations. ([#56](https://github.com/metagenlab/zDB/pull/56)) (Niklaus Johner)
+- Store reference DB and software versions in DB. ([#54](https://github.com/metagenlab/zDB/pull/54)) (Niklaus Johner)
+- Add script to compute rendering times of various views. ([#51](https://github.com/metagenlab/zDB/pull/51)) (Niklaus Johner)
+- Add possibility to dump HTML responses from webapp tests. ([#50](https://github.com/metagenlab/zDB/pull/50)) (Niklaus Johner)
+- Add AMR accumulation/rarefaction plot view. ([#46](https://github.com/metagenlab/zDB/pull/46)) (Niklaus Johner)
+- Add AMR heatmap view. ([#45](https://github.com/metagenlab/zDB/pull/45)) (Niklaus Johner)
+- Add AMR details view. ([#44](https://github.com/metagenlab/zDB/pull/44)) (Niklaus Johner)
+- Add AMR Venn diagram view. ([#41](https://github.com/metagenlab/zDB/pull/41)) (Niklaus Johner)
+- Add AMR hit extraction view. ([#38](https://github.com/metagenlab/zDB/pull/38)) (Niklaus Johner)
+- Add AMR entry list view. ([#37](https://github.com/metagenlab/zDB/pull/37)) (Niklaus Johner)
+- Add AMR comparison index view and link it in the menu and home page. ([#35](https://github.com/metagenlab/zDB/pull/35)) (Niklaus Johner)
+- Add AMR tabular comparison views. ([#24](https://github.com/metagenlab/zDB/pull/24), [#31](https://github.com/metagenlab/zDB/pull/31)) (Niklaus Johner)
+- Add integration tests for pipelines and views. ([#29](https://github.com/metagenlab/zDB/pull/29)) (Niklaus Johner)
+- Add unitesting for pipelines. ([#26](https://github.com/metagenlab/zDB/pull/26)) (Niklaus Johner)
+- Add antimicrobial resistance annotations. ([#23](https://github.com/metagenlab/zDB/pull/23)) (Niklaus Johner)
+- Add support for circular contigs in the genomic viewer. (https://github.com/metagenlab/zDB/pull/33) (Bastian Marquis)
+
+### Fixed
+
+- Fix filtering of COGs in annotation pipeline. ([#108](https://github.com/metagenlab/zDB/pull/108)) (Niklaus Johner)
+- Fix blast view for hits with identifier containing a version number. ([#106](https://github.com/metagenlab/zDB/pull/106)) (Niklaus Johner)
+- Fix PFAM identifiers missing leading 0. ([#105](https://github.com/metagenlab/zDB/pull/105)) (Niklaus Johner)
+- Fix product representation in GWAS view for orthogroups. ([#102](https://github.com/metagenlab/zDB/pull/102)) (Niklaus Johner)
+- Fix Scoary-2 integration. ([#101](https://github.com/metagenlab/zDB/pull/101)) (Niklaus Johner)
+- Fix search_bar results view when all loci miss any gene annotation. ([#99](https://github.com/metagenlab/zDB/pull/99)) (Niklaus Johner)
+- Fix locusx view error for loci with homologs without any gene annotation. ([#99](https://github.com/metagenlab/zDB/pull/99)) (Niklaus Johner)
+- Fix extract_contigs view error for contigs without any gene annotation. ([#99](https://github.com/metagenlab/zDB/pull/99)) (Niklaus Johner)
+- Correctly handle group_0 in EntryIdParser. ([#93](https://github.com/metagenlab/zDB/pull/93)) (Niklaus Johner)
+- Fix webapp conda environment for macOS. ([#87](https://github.com/metagenlab/zDB/pull/87)) (Niklaus Johner)
+- Fix displaying active tab in search results view. ([#73](https://github.com/metagenlab/zDB/pull/73)) (Niklaus Johner)
+- Fix missing page title for kegg_mapp_ko view. ([#66](https://github.com/metagenlab/zDB/pull/66)) (Niklaus Johner)
+- Handle empty result set in heatmap, venn and pan_genome views. ([#66](https://github.com/metagenlab/zDB/pull/66)) (Niklaus Johner)
+- Fix tabular comparison views navigation tabs. ([#30](https://github.com/metagenlab/zDB/pull/30), [#31](https://github.com/metagenlab/zDB/pull/31)) (Niklaus Johner)
+- Fix the representation of genes overflowing from a genomic region, that would appear shorter than they actually are. ([#52](https://github.com/metagenlab/zDB/pull/52)) (Bastian Marquis)
+- Fix missing page title on error in blast view. ([#64](https://github.com/metagenlab/zDB/pull/64)) (Niklaus Johner)
+
+
+## 1.2.1 - 2023-10-16
+
+### Changed
+- Bump checkm-genome version to 1.2.2. (Trestan Pillonel)
+
+
+## 1.2.0 - 2023-10-13
+
+### Changed
+
+- Use mamba to build conda envs ([30bbb7530d75c3adf986aaf4c5052ad83ea301b8](https://github.com/metagenlab/zDB/commit/30bbb7530d75c3adf986aaf4c5052ad83ea301b8)) (Trestan Pillonel)
+
+### Fixed
+
+- Fix issue for genome file download ([#16](https://github.com/metagenlab/zDB/pull/16)) (Trestan Pillonel)
+- Fix file extensions in annotation pipeline ([#17](https://github.com/metagenlab/zDB/pull/17)) (Thomas Kozusnik)
+
+
+## 1.1.1 - 2023-05-16
+
+### Fixed
+
+- Fixed several issues with conda environments. (Bastian Marquis and Trestan Pillonel)
+
+
+## 1.1.0 - 2023-03-30
+
+### Added
+
+- Add ```--resume``` option to ```zdb setup``` ([272b4b434279d725b5860db26458c430934fddd5](https://github.com/metagenlab/zDB/commit/272b4b434279d725b5860db26458c430934fddd5)) (Bastian Marquis)
+
+
+## 1.0.8 - 2023-03-15
+
+### Added
+- Add support for docker and conda. ([#13](https://github.com/metagenlab/zDB/pull/13)) (Bastian Marquis)
+
+### Fixed
+- Several bugfixes
+
+
+## 1.0.5 - 2022-12-08
+
+### Added
+
+- Add ```--resume``` option to ```zdb run``` ([#11](https://github.com/metagenlab/zDB/pull/11)) (Bastian Marquis)
+- Add name field to the input csv file.
+- Accept genbank files with other extensions in the pipeline.
+
+
+## 1.0.4 - 2022-09-21
+
+### Fixed
+
+- Fix conda build ([#10](https://github.com/metagenlab/zDB/pull/10)) (Bastian Marquis)
+
+
+## 1.0.3 - 2022-06-07
+
+### Fixed
+
+- Correctly set number of missing orthogroups. ([b9df07c2668f4d70cea2a345a7b3fdf2f6d55bfb](https://github.com/metagenlab/zDB/commit/b9df07c2668f4d70cea2a345a7b3fdf2f6d55bfb)) (Bastian Marquis)
+- Fix bug with singularity. ([4d37463ed78789f26352c56d1c2af9c50e2b09b9](https://github.com/metagenlab/zDB/commit/4d37463ed78789f26352c56d1c2af9c50e2b09b9)) (Bastian Marquis)
+
+
+## 1.0.2 - 2022-05-10
+
+### Added
+
+- Add support for conda. ([#9](https://github.com/metagenlab/zDB/pull/9)) (Bastian Marquis)
+
+
+## 1.0.0 - 2022-04-01
+
+_Initial release._
+

@@ -1,0 +1,60 @@
+<script language="Javascript">
+
+/**
+* Note: columns and build_set need to be defined 
+*   in the template file that includes this one.
+*/
+
+var data_dict = {{ data_dict|safe }};
+
+
+$(document).ready(function() {
+    $("#names").DataTable ({
+        columns: columns,
+          dom: 'lBfrtip',
+          buttons: [
+            {
+              extend: 'excel',
+              title: 'homologs_{{orthogroup}}'
+            },
+            {
+              extend: 'csv',
+              title: 'homologs_{{orthogroup}}'
+            },
+          ],
+    });
+
+    // initially hide the table when no set is selected
+    $("#names_div").hide();
+
+    $('#venn_diagram').jvenn({
+        series: {{ series|safe }},
+        displayStat: true,
+        displayMode: {{ series|safe }}.length == 6 ? 'edwards':'classic',
+        fnClickCallback: function() {
+            let dataSet = this.list
+                .filter(it => it in data_dict)
+                .map(it => data_dict[it]);
+            $("#names_div").show();
+            let table = $("#names").DataTable();
+            table.clear();
+            for(el in dataSet) {
+                table.row.add(dataSet[el]);
+            }
+            table.draw();
+        }
+    });
+});
+
+
+</script>
+
+
+<div class="col-lg-12">
+  <div id="venn_diagram" style="display: table;margin: 0;">
+  </div>
+
+  <div id="names_div" style="margin-top: 3em;">
+    <table id="names" class="table table-striped" width="100%" class="hover"></table>
+  </div>
+</div>

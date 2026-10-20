@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head> 
+  {% load static %}
+  {% load custom_tags %}
+  {% include "chlamdb/header.html" %}
+</head>
+
+<body>
+ 
+  <div class="container-fluid" id="main_container">
+    <div class="row">
+      <div id="wrapper">
+        <div id="page-content-wrapper">
+          {% include "chlamdb/comparison_header.html" %}
+
+          {% if show_results %}
+
+            <div class="row" style="background-color: rgba(245, 245, 245, 0.986)">
+              <div class="col-lg-10 col-md-12 col-sm-12">
+                <br>
+                <div class="panel panel-success" style="width:100%; top: 200px; margin: 10px 10px 10px 10px; float: left;">
+                  <div class="panel-heading" style="width:100%">
+                    <h3 class="panel-title">Help to interpret the results</h3>
+                  </div>
+                  <p style="margin: 10px 10px 10px 10px; line-height: 180%">{{ table_help|safe }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: rgba(245, 245, 245, 0.986)">
+              {% if show_circos_form %}
+                <div class="col-lg-4 col-md-5 col-sm-12">
+                  <form class="panel panel-info" style="width:100%; top: 200px; margin: 10px 10px 10px 10px; float: left;" target="_blank" action="/circos/" method="POST" id="carform" >
+                    <div class="panel-heading">
+                      <h3 class="panel-title">
+                        Show the comparison on circular map
+                      </h3>
+                    </div>
+                    <div style="margin: 10px 10px 10px 10px; line-height: 140%">
+                      {% csrf_token %}
+                      {% for taxid in included_taxids %}
+                        <input type="hidden" name="targets" value={{taxid}}>
+                      {% endfor %}
+                      {% for taxid in excluded_taxids %}
+                        <input type="hidden" name="targets" value={{taxid}}>
+                      {% endfor %}
+                      <input type="hidden" name="highlighted_entries" value={{circos_highlight}}>
+                      <input type="hidden" name="label_mapping" value={{circos_highlight}}>
+                      <label for="circos_reference" class="control-label">Circos reference</label>
+                      <div class="control">
+                        <select name="circos_reference" id="reference_taxid" class="bootstrap-select" style="height:36px; margin-bottom: 1em;">
+                          {% for row in ref_genomes.itertuples %}
+                            <option value="{{row.taxon_id}}">{{row.description}}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <button type="submit">Show</button>
+                    </div>
+                  </form>
+                </div>
+              {% endif %}
+              <div class="col-lg-6 col-md-7 col-sm-12">
+                <div style="padding-top:10px; padding-left: 30px;">
+                  <table class="table" style="width:600px">
+                    <tr>
+                      <th>Number of included genomes</th>
+                      <td> {{ included_taxids|length }} </td>
+                    </tr>
+                    <tr>
+                      <th>Number of excluded genomes</th>
+                      <td> {{ excluded_taxids|length }} </td>
+                    </tr>
+
+                    <tr>
+                      <th>Number of accepted missing data</th>
+                      <td> {{ n_missing }} </td>
+                    </tr>
+                    <tr>
+                      <th>Number of {{ object_name_plural }} identified</th>
+                      <td> {{ n_hits }}  </td>
+                    </tr>
+                  </table>
+
+                </div>
+              </div>
+            </div>
+            <div class="row" style="background-color: rgba(245, 245, 245, 0.986)">
+              {% include "chlamdb/result_tabs.html" %}
+            </div>
+          {% endif %}
+
+        </div> <!-- page-content-wrapper -->
+      </div> <!-- wrapper -->
+    </div>  <!-- row -->
+  </div>  <!-- container-fluid -->
+
+<script src="{% static 'js/cookie.js' %}"></script>
+<script src="{% static 'js/jquery.redirect.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/custom_plot.js' %}"></script>
+
+<script>
+
+  $(document).ready(function() {
+    $('.data-table').DataTable({
+    select: {
+        items: 'row',
+        style: 'os',
+        headerCheckbox: true,
+    },
+    columnDefs: [
+        {
+            orderable: false,
+            render: DataTable.render.select(),
+            target: 0
+        }
+    ],
+    dom: 'Bfrtip',
+    "paging":   true,
+    "ordering": true,
+    "info":     false,
+    buttons: [
+      {extend: 'excel', title: 'ko_table'},
+      {extend: 'csv', title: 'ko_table'},
+      {
+        text: 'Plot phylogeny',
+        action: function(e, dt, node, config) {
+          makeCustomPlot(dt);
+        },
+      }
+    ]});
+  } );
+
+
+
+</script>
+
+
+{% include "chlamdb/style_menu.html" %}
+</body>
+</html>
+
+<style>
+option:first {
+    color: #999;
+}
+</style>

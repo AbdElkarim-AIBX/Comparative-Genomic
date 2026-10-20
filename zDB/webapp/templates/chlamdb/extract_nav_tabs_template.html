@@ -1,0 +1,8 @@
+
+<nav>
+  <ul id="tabs_main" class="nav nav-tabs">
+    {% for view in available_views %}
+      <li class={% if active_tab == view.name %}"active"{%endif%}><a href={{view.url}}>{{view.title}}</a></li>
+    {% endfor %}
+  </ul>
+</nav>

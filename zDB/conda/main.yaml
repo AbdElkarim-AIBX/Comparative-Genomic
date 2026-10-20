@@ -1,0 +1,7 @@
+name: main
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - nextflow>=24.04,<26.04
+    - apptainer=1.4

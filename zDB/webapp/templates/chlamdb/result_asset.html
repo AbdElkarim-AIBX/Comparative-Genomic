@@ -1,0 +1,6 @@
+{% load static %}
+
+<a download="{{results.id}}.svg" class="btn" href="{% static results.asset_path %}"> <i class="fa fa-download"></i> Download SVG
+</a>
+<object type="image/svg+xml" data="{% static results.asset_path %}" id="{{results.id}}"></object>
+

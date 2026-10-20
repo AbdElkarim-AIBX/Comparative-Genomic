@@ -1,0 +1,739 @@
+#!/usr/bin/env bash
+
+
+# This will get replaced by conda installation script
+VERSION="version"
+
+# Hack to know the installation folder
+CONDA=$(which zdb | sed 's=bin/zdb==')
+
+# Version of zdb container for running the webapp
+zdb_container="zdb:1.4.0"
+
+# The value of this variable will be replaced by the conda installation script
+# to point to the folder where all the nextflow scripts are installed.
+#
+# If you are installed zdb github, just point it to the checked out
+# directory.
+# NOTE: sourced installs — NEXTFLOW_DIR now resolves to the checkout
+# directory that contains nextflow.config (see README "Installation from sources").
+NEXTFLOW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ $# == "0" || $1 == "help" ]]; then
+	echo "zDB (v${VERSION})"
+	echo "Available commands:"
+	echo ""
+	echo "setup - download and prepare the reference and base databases"
+	echo ""
+	echo "webapp - start the webapp"
+	echo ""
+	echo "run - run the analysis pipeline"
+	echo ""
+	echo "export - exports the results of a previous run in an archive"
+	echo ""
+	echo "import - unpack an archive that was prepared with the export command in the current directory"
+	echo "       - so that the results can be used to start the webapp"
+	echo ""
+	echo "list_runs - lists the completed runs available to start the website in a given directory"
+	echo ""
+	echo "help - print this message"
+	exit 0
+fi
+
+
+if [[ "$1" == "list_runs" ]]; then
+	dir=$(pwd)
+
+	if [ "$2" == "--help" -o "$2" == "-h" ]; then
+		echo "This subcommands list the completed analysis runs available to start the webapp"
+		echo "If no parameter is passed, it will look into the current directory"
+		echo ""
+		echo "Options:"
+		echo "--help|-h: prints this help"
+		exit 0
+	fi
+
+	if [[ "$#" -gt "2" ]]; then
+		echo "Warning: only one argument is supported. The runs will be printed only for $2"
+		dir=$2
+	elif [[ "$#" == "2" ]]; then
+		dir=$2
+	fi
+
+	if [ ! -d "${dir}/zdb/results/" -o ! -d "${dir}/zdb/results/.completed_runs" ]; then
+		echo "Could not find results in directory in $dir"
+		exit 1
+	fi
+
+	echo "The following runs could be found:"
+	echo ""
+	for i in $(ls ${dir}/zdb/results/.completed_runs); do
+		if [ "$(cat ${dir}/zdb/results/.completed_runs/$i)" = "$i" ]; then
+			echo $i
+		else
+			echo "$i -> $(cat ${dir}/zdb/results/.completed_runs/$i)"
+		fi
+	done
+	exit 0
+
+elif [[ "$1" == "setup" ]]; then
+	shift
+
+	if [[ "$#" == "0" ]]; then
+		echo "No database to download, exiting"
+		exit 0
+	fi
+
+	dir="$(pwd)/zdb_ref"
+	db_setup_args=""
+	singularity_dir="$(pwd)/singularity"
+	singularity=true
+	docker=false
+	conda=false
+	resume=false
+
+	for i in "$@"; do
+		case $i in 
+			--setup_base_db)
+				db_setup_args="${db_setup_args} --setup_base_db"
+				shift
+				;;
+			--cog)
+				db_setup_args="${db_setup_args} --cog"
+				shift
+				;;
+			--conda)
+				conda=true
+				singularity=false
+				shift
+				;;
+			--docker)
+				docker=true
+				singularity=false
+				shift
+				;;
+			--resume)
+				resume=true
+				shift
+				;;
+			--ko)
+				db_setup_args="${db_setup_args} --ko"
+				shift
+				;;
+			--swissprot)
+				db_setup_args="${db_setup_args} --blast_swissprot"
+				shift
+				;;
+			--refseq)
+				db_setup_args="${db_setup_args} --diamond_refseq"
+				shift
+				;;
+			--pfam)
+				db_setup_args="${db_setup_args} --pfam"
+				shift
+				;;
+			--vfdb)
+				db_setup_args="${db_setup_args} --vfdb"
+				shift
+				;;
+			--singularity_dir=*)
+				singularity_dir=${i#*=}
+				shift
+				;;
+			--dir=*)
+				dir=${i#*=}
+				shift
+				;;
+			--help)
+				echo "Downloads and sets up the reference database used by the analysis pipeline,"
+				echo "as well as the zDB base database."
+				echo ""
+				echo "The following options can be used:"
+				echo " --setup_base_db: set up the DB skeleton used by zDB. Has to be done before running \"zdb run\" for the first time. "
+				echo " --cog: downloads the CDD profiles used for COG annotations "
+				echo " --ko: downloads and setups the hmm profiles of the ko database"
+				echo " --pfam: downloads and setups up the hmm profiles of the PFAM protein domains"
+				echo " --swissprot: downloads and indexes the swissprot database "
+				echo " --refseq: downloads and indexes the NR RefSeq database"
+				echo " --vfdb: downloads the virulence factor database "
+				echo ""
+				echo "Other parameters:"
+				echo " --dir: directory where to store the reference databases (defaults zdb_ref in the current directory)"
+				echo " --resume: resume a previously failed execution"
+				echo ""
+				echo "Environments (by default, singularity containers are used):"
+				echo " --conda: uses conda environment to prepare the databases"
+				echo " --docker: uses docker containers to prepare the databases"
+				echo " --singularity_dir: the directory where the singularity images are downloaded (default singularity in current directory)"
+				exit 0
+				;;
+			*)
+				echo "Unknown option $i"
+				exit 1
+		esac
+	done
+	if [ "$docker" = true -a "$conda" = true ]; then
+		echo "Docker and conda cannot be set at the same time"
+		exit 1
+	elif [ "$docker" = true ]; then
+		env="--docker=true --conda=false --singularity=false"
+	elif [ "$conda" = true ]; then
+		env="--docker=false --conda=true --singularity=false"
+	else
+		env="--docker=false --conda=false --singularity=true"
+	fi
+
+	if [ "$resume" = true ]; then
+		echo "Resuming previous run"
+		db_setup_args="${db_setup_args} -resume"
+	else
+		echo "Preparing the reference databases, this will take some time"
+	fi
+
+	db_setup_args="${db_setup_args} --base_db=${dir} ${env} --singularity_dir=${singularity_dir}"
+	nextflow run $NEXTFLOW_DIR/db_setup.nf ${db_setup_args}
+	echo "Done. The reference databases were prepared in the ${dir} folder"
+	exit 0
+
+elif [[ "$1" == "webapp" ]]; then
+	shift
+	# default value for the run name
+	run_name="latest"
+
+	port="8080"
+	docker=false
+	conda=false
+	allowed_host=""
+	trusted_origins=""
+	dir=$(pwd)
+
+	zdb_folder="${NEXTFLOW_DIR}/webapp/"
+	debug=false
+	use_dev_server=false
+	singularity_dir="$(pwd)/singularity"
+
+	for i in "$@"; do
+		case $i in
+			--port=*)
+				port="${i#*=}"
+				shift
+				;;
+			--allowed_host=*)
+				allowed_host="${i#*=}"
+				shift
+				;;
+			--trusted_origins=*)
+				trusted_origins="${i#*=}"
+				shift
+				;;
+			--name=*)
+				run_name="${i#*=}"
+				shift
+				;;
+			--singularity_dir=*)
+				singularity_dir=$(realpath "${i#*=}")
+				shift
+				;;
+			-d|--debug)
+				debug=true
+				shift
+				;;
+			--dev_server)
+				use_dev_server=true
+				shift
+				;;
+			--conda)
+				conda=true
+				shift
+				;;
+			--docker)
+				docker=true
+				shift
+				;;
+			--dir=*)
+				dir=$(realpath "${i#*=}")
+				shift
+				;;
+			-h|--help)
+				echo ""
+				echo "This script starts the web application, using by default the database "
+				echo "that was generated by the latest run of analysis"
+				echo ""
+				echo "Arguments:"
+				echo "--dir: the directory where the results (should contain a zdb subfolder) can be found"
+				echo "       (defaults to the current directory)"
+				echo "--name=NAME: tells the web application to use a different database than the latest"
+				echo "--port=PORT: the web server will listen on a different port (default: 8080)"
+				echo "--allowed_host=HOSTS: coma separated list that will be passed as argument"
+				echo "                      to django ALLOWED_HOSTS. If none specified, will try"
+				echo "                      to guess with the hostname command. This is basically" 
+			    echo "	                    the URL or IP adress you will using to access the web page."
+				echo ""
+				echo "--trusted_origins=ORIGINS: coma separated list that will be passed as argument"
+				echo "                      	 to django's CSRF_TRUSTED_ORIGINS. This needs to include"
+				echo "                      	 the scheme, e.g. https://example.com"
+				echo ""
+				echo "By default, the web application will be run in a singularity container."
+				echo "This can be changed with either one of the two following options:"
+				echo "--docker: the web application will be run in a docker instead of "
+				echo "          a singularity container "
+				echo "--conda: the web application will be run in a conda environment"
+				echo ""
+				echo "--singularity_dir: the directory where the singularity images are downloaded (default singularity in current directory)"
+				echo ""
+				exit 0
+				;;
+			*)
+				echo "Unknown option $i"
+				exit 1
+		esac
+	done
+
+	debugging_mode=""
+
+	if [ "$conda" = true -a "$docker"  = true ]; then
+		echo "Conda and docker cannot be used simultaneously"
+		exit 1
+	fi
+
+	if [ "$debug" = true ]; then
+		debugging_mode="-d"
+	fi
+
+	# De-alias the run_name
+	if [ -f "${dir}/zdb/results/.completed_runs/${run_name}" ]; then
+		run_name=$(cat $dir/zdb/results/.completed_runs/${run_name})
+	else
+		echo "No run with name : ${run_name} in ${dir}/zdb/results/"
+		exit 1
+	fi
+
+	if [ ! -d "${dir}/zdb/nginx/var" ]; then
+		mkdir ${dir}/zdb/nginx/var
+	fi
+
+	if [ ! -z "${allowed_host}" ]; then
+		allowed_host="--hosts=${allowed_host}"
+	fi
+
+	if [ ! -z "${trusted_origins}" ]; then
+		trusted_origins="--trusted_origins=${trusted_origins}"
+	fi
+
+	dev_server=""
+	if [ "$use_dev_server" = true -o "$conda" = true ]; then
+		dev_server="--use_dev_server"
+		debugging_mode="-d"
+	fi
+
+	# We will be serving ${dir}/zdb/assets/, so everything needs
+	# to be in there. When using nginx, we will use the collectstatic command
+	# to get all static files from installed applications and zDB into served_assets,
+	# otherwise we will symlink everything from ${zdb_folder}/assets/ into ${zdb_folder}/assets/
+	# and django will take care of serving static files from other installed apps.
+	bind_path=() # Used for docker and singularity
+	bind_path_results=() # Used for conda, docker and singularity
+
+	bind_path+=("$zdb_folder":"$zdb_folder")
+
+	bind_path_results+=($(realpath "${dir}/zdb/results/search_index/index_${run_name}"):"${zdb_folder}/served_assets/search_index/${run_name}")
+	bind_path_results+=("${dir}/zdb/results/blast_DB/${run_name}":"${zdb_folder}/served_assets/blast_DB/${run_name}")
+	bind_path_results+=("${dir}/zdb/results/alignments/${run_name}":"${zdb_folder}/served_assets/alignments")
+	bind_path_results+=(""${dir}/zdb/results/db/$run_name":${zdb_folder}/served_assets/db/${run_name}")
+
+	bind_path+=("${bind_path_results[@]}")
+	bind_path+=("${dir}/zdb/gunicorn":"/usr/local/gunicorn/")
+	bind_path+=("${dir}/zdb/nginx":"/usr/local/nginx")
+
+	# Annoying part to avoid error messages from nginx attempting to write
+	# into an hard-coded /var/log/nginx/error.log -> the zdb/nginx/var directory is mounted
+	# on /var/log/nginx in the container so that nginx can write in the file and be happy.
+	bind_path+=("${dir}/zdb/nginx/var":"/var/log/nginx")
+	bind_path+=("${dir}/zdb/nginx/proxy_temp":"/usr/local/nginx/proxy_temp")
+
+	# We prepare all the folders that we will need and make the symlinks for conda.
+	# This would not be necessary for singularity but for docker it allows the folders
+	# to not get created on mount by root, so that we can easily remove them when shutting down.
+	for bd in ${bind_path_results[@]}; do
+		target=$(echo $bd | cut -d':' -f 2)
+		base=$(echo $bd | cut -d':' -f 1)
+		basedir=$(dirname $target)
+		if [ -e "$target" ]; then
+			rm -rf $target
+		fi
+		mkdir -p $basedir
+		if [[ "$conda" = true ]]; then
+			ln -s $base $target
+		fi
+	done
+	mkdir -p $zdb_folder/served_assets/temp
+
+	options="--run_name=${run_name} --port=${port} ${debugging_mode} ${allowed_host} ${trusted_origins} ${dev_server}"
+	if [[ "$docker" = true ]]; then
+		full_docker_name="registry.hub.docker.com/metagenlab/${zdb_container}"
+		docker pull ${full_docker_name}
+
+		bind_docker=""
+		for index in ${bind_path[@]}; do
+			bind_docker="$bind_docker -v $index"
+		done
+		docker run -p $port:$port ${bind_docker} -it ${full_docker_name} ${zdb_folder}/start_webapp ${options}
+
+	elif [[ "$conda" = true ]]; then
+		conda_prefix="$NEXTFLOW_DIR/conda-env/webapp"
+		if [[ ! -e "$conda_prefix" ]]; then
+			echo "Building conda environment..."
+			conda env create --prefix $conda_prefix -f $NEXTFLOW_DIR/conda/webapp.yaml &> conda_log
+			if [[ $? -eq 0 ]]; then
+				echo "Done"
+			else
+				echo "Failed to build conda environment, you can check conda_log for details"
+				exit 1
+			fi
+		fi
+
+		conda run --live-stream -p $conda_prefix ${zdb_folder}/start_webapp ${options}
+
+	else
+		if [ ! -d "${singularity_dir}" ]; then
+			mkdir -p ${singularity_dir}
+		fi
+
+		if [ ! -f "${singularity_dir}/${zdb_container}.sif" ]; then
+			echo "Preparing the zdb container, this may take a while."
+			singularity build ${singularity_dir}/${zdb_container}.sif \
+				docker://registry.hub.docker.com/metagenlab/${zdb_container} &> singularity_log
+			if [ ! $? -eq 0 ]; then
+				echo "Failed to download singularity, more information in the singularity_log file"
+				exit 1
+			else
+				rm singularity_log
+			fi
+			echo "Done"
+		fi
+
+		bind_singularity=""
+		for index in ${bind_path[@]}; do
+			bind_singularity="$bind_singularity,$index"
+		done
+
+		# The mount point must exist in order for singularity to mount the file
+		touch ${zdb_folder}/served_assets/db/${run_name}
+		singularity run -c --bind ${bind_singularity} \
+			${singularity_dir}/${zdb_container}.sif ${zdb_folder}/start_webapp ${options}
+	fi
+	# Clean-up...
+	rm -rf $zdb_folder/served_assets
+elif [[ "$1" == "run" ]]; then
+	shift
+
+	args=""
+	dir="zdb_ref"
+	mem="8GB"
+	cpus="8"
+	input_file=""
+	output_dir=$(pwd)
+	n_missing="0"
+	singularity_dir="$(pwd)/singularity"
+	name=""
+	resume=false
+	envs="--singularity=true --docker=false --conda=false"
+
+	for i in "$@"; do
+		case $i in 
+			--resume)
+				resume=true
+				shift
+				;;
+			--out=*)
+				output_dir=${i#*=}
+				shift
+				;;
+			--input=*)
+				input_file="${i#*=}"
+				shift
+				;;
+			--name=*)
+				name=${i#*=}
+				args="${args} --name=${name}"
+				shift
+				;;
+			--docker)
+				envs="--docker=true --singularity=false --conda=false"
+				shift
+				;;
+			--conda)
+				envs="--docker=false --singularity=false --conda=true"
+				shift
+				;;
+			--cpu=*)
+				cpus=${i#*=}
+				shift
+				;;
+			--mem=*)
+				mem=${i#*=}
+				shift
+				;;
+			--num_missing=*)
+				n_missing=${i#*=}
+				int_re='^[0-9]*$'
+				if ! [[ $n_missing =~ $int_re ]]; then
+					echo "Expect a number for n_missing option"
+					exit 1
+				fi
+				args="${args} --core_missing=$n_missing"
+				shift
+				;;
+			--amr)
+				args="${args} --amr"
+				shift
+				;;
+			--cog)
+				args="${args} --cog"
+				shift
+				;;
+			--ko)
+				args="${args} --ko"
+				shift
+				;;
+			--swissprot)
+				args="${args} --blast_swissprot"
+				shift
+				;;
+			--refseq)
+				args="${args} --diamond_refseq"
+				shift
+				;;
+			--pfam)
+				args="${args} --pfam"
+				shift
+				;;
+			--vfdb)
+				args="${args} --vfdb"
+				shift
+				;;
+			--vf_evalue=*)
+				evalue=${i#*=}
+				args="${args} --vf_evalue=${evalue}"
+				shift
+				;;
+			--vf_seqid=*)
+				vf_seqid=${i#*=}
+				args="${args} --vf_seqid=${vf_seqid}"
+				shift
+				;;
+			--vf_coverage=*)
+				vf_coverage=${i#*=}
+				args="${args} --vf_coverage=${vf_coverage}"
+				shift
+				;;
+			--gi)
+				args="${args} --gi"
+				shift
+				;;
+			--og_seq_aligner=*)
+				og_seq_aligner=${i#*=}
+				args="${args} --og_seq_aligner=${og_seq_aligner}"
+				shift
+				;;
+			--og_n_core=*)
+				n_core=${i#*=}
+				int_re='^[0-9]*$'
+				if ! [[ $n_core =~ $int_re ]]; then
+					echo "Expect a number for og_n_core option"
+					exit 1
+				fi
+				args="${args} --og_n_core=$n_core"
+				shift
+				;;
+			--singularity_dir=*)
+				singularity_dir=$(realpath ${i#*=})
+				shift
+				;;
+			--ref_dir=*)
+				dir=$(realpath ${i#*=})
+				shift
+				;;
+			--help)
+				echo "Run the analysis pipeline (some analysis may not be available depending on which reference databases were setup)"
+				echo ""
+				echo "The following options can be used"
+				echo " --resume: wrapper for nextflow resume. Add this flag to the command that failed to resume the execution where it stopped. "
+				echo " --out: directory where the files necessary for the webapp will be stored"
+				echo " --input: CSV file containing the path to the genbank files to include in the analsysis"
+				echo " --docker: use docker containers instead of singularity"
+				echo " --conda: use conda environments instead of singularity"
+				echo " --name: run name (defaults to the name given by nextflow)"
+				echo "         the latest completed run is also named latest"
+				echo " --amr: perform amr (antibiotic resistance) annotation"
+				echo " --cog: perform cog annotation"
+				echo " --ko: perform ko (metabolism) annotation"
+				echo " --pfam: peform PFAM domain annotation"
+				echo " --swissprot: search for homologs in the swissprot database"
+				echo " --refseq: search for homologs in the refseq database"
+				echo " --vfdb: search for homologs in the virulence factor database"
+				echo " --vf_evalue: evalue cutoff for the blast against the VF database. Defaults to 1e-10."
+				echo " --vf_coverage: coverage cutoff for query in blast against the VF database. Defaults to 60%."
+				echo " --vf_seqid: sequence id cutoff for filtering VF blast results. Defaults to 60%."
+				echo " --gi: perform gi (genomic islands) annotation"
+				echo " --og_seq_aligner: the sequence aligner to use for orthogroup prediction (blast or diamond, defaults to diamond)"
+				echo " --ref_dir: directory where the reference databases were setup up (default zdb_ref)"
+				echo " --cpu: number of parallel processes allowed (default 16)"
+				echo " --mem: max memory usage allowed (default 8GB)"
+				echo " --num_missing: allows for missing genomes for the determination of core orthogroups (default 0)"
+				echo " --singularity_dir: the directory where the singularity images are downloaded (default singularity in current directory)"
+				exit 1
+				;;
+			*)
+				echo "Unknown option $i"
+				exit 1
+		esac
+	done
+
+	if [ -z "${input_file}" ]; then
+		echo "No input file specified"
+		exit 1
+	fi
+
+	if [ "$name" = "latest" ]; then
+		echo "latest is a reserved name"
+		exit 1
+	fi
+
+	if [ -f "${output_dir}/zdb/results/.completed_runs/$name" ]; then
+		echo "A run with that name already exists"
+		exit 1
+	fi
+
+	args="${args} ${envs} --base_db=${dir} --n_cpus=${cpus} --mem=${mem} --input=${input_file}"
+	args="${args} --results_dir=${output_dir}/zdb/results"
+	args="${args} --singularity_dir=$singularity_dir"
+
+	if [ "$resume" = true ]; then
+		echo "Resuming previous run"
+		args="${args} -resume"
+	else
+		echo "Starting the analysis pipeline"
+	fi
+
+	nextflow run $NEXTFLOW_DIR/annotation_pipeline.nf ${args}
+	if [ $? -ne 0 ]; then
+		echo "Could not finish the analysis"
+		echo "Try to rerun the same command with the --resume flag set to rerun the analysis"
+		exit 1
+	fi
+
+	if [[ ! -d ${output_dir}/zdb/nginx ]]; then
+		cp -R $NEXTFLOW_DIR/zdb/nginx ${output_dir}/zdb
+	fi
+
+	if [[ ! -d ${output_dir}/zdb/gunicorn ]]; then
+		mkdir ${output_dir}/zdb/gunicorn
+		cp -R $NEXTFLOW_DIR/zdb/gunicorn/gunicorn.py ${output_dir}/zdb/gunicorn/
+	fi
+
+	echo "Done. You can now launch the webapp"
+	exit 0
+
+
+elif [[ "$1" == "export" ]]; then
+	shift
+	dir="$(pwd)"
+	run_name="latest"
+
+	for i in "$@"; do
+		case $i in 
+			--dir=*)
+				dir=${i#*=}
+				shift
+				;;
+			--name=*)
+				run_name=${i#*=}
+				shift
+				;;
+			--help)
+				echo "Exports the results of a given run name into an archive to make sharing easier"
+				echo ""
+				echo "The following options can be used"
+				echo ""
+				echo " --dir: specify the directory where the analysis was run"
+				echo ""
+				echo " --name: specify the run to be exported"
+				exit
+				;;
+			*)
+				echo "Unknown option $i"
+				exit 1
+		esac
+	done
+	 
+	if [[ ! -d "$dir/zdb/results/" ]]; then
+		echo "Could not access the results directory: $dir"
+		exit 1
+	elif [[ -f "$dir/results/.completed_runs/$name" ]]; then
+		echo "Could not find run with name $name"
+	fi
+	unaliased_name=$(cat $dir/zdb/results/.completed_runs/$run_name)
+	prefix="zdb/results/"
+
+	echo "Packaging archive"
+	tar zcvfh $unaliased_name.tar.gz -C $dir $prefix/alignments/$unaliased_name \
+		$prefix/blast_DB/$unaliased_name $prefix/db/$unaliased_name \
+		$prefix/gene_phylogenies/$unaliased_name $prefix/search_index/index_$unaliased_name \
+		$prefix/.completed_runs/$unaliased_name \
+		zdb/nginx zdb/gunicorn &> /dev/null
+	echo "Created archive $unaliased_name.tar.gz"
+	exit 0
+
+elif [[ "$1" == "import" ]]; then
+	shift
+	outdir="$(pwd)/"
+	archive=""
+
+	for i in "$@"; do
+		case $i in 
+			--outdir=*)
+				outdir=${i#*=}
+				shift
+				;;
+			--archive=*)
+				archive=${i#*=}
+				shift
+				;;
+			--help)
+				echo "Unpack an archive that was prepared by the export command"
+				echo "You can alternatively manually unpack it."
+				echo ""
+				echo "The following options can be used"
+				echo ""
+				echo " --outdir: specify where the archive will be unpacked "
+				echo ""
+				echo " --archive: specify the archive to be unpacked"
+				exit
+				;;
+		esac
+	done
+
+	if [[ ! -f "$archive" ]]; then
+		echo "Could not find file $archive"
+		exit 1
+	fi
+
+	run_name=$(basename $archive .tar.gz)
+	if [[ ! -d $outdir ]]; then
+		mkdir -p $outdir
+	fi
+
+	if [[ -f "zdb/results/.completed_runs/$run_name" ]]; then
+		echo "A run with that name already exists. Please unpack the archive in a different directory"
+		exit 1
+	fi
+
+	echo "Unpacking archive"
+	tar xvf $archive -C $outdir &> /dev/null
+	echo $run_name > $outdir/zdb/results/.completed_runs/latest
+	echo "Done"
+	echo "You can now start the zdb webapp in the $outdir directory"
+else
+	echo "Unkown subcommand $1"
+fi
