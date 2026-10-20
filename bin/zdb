@@ -12,10 +12,12 @@ zdb_container="zdb:1.4.0"
 
 # The value of this variable will be replaced by the conda installation script
 # to point to the folder where all the nextflow scripts are installed.
-# 
+#
 # If you are installed zdb github, just point it to the checked out
 # directory.
-NEXTFLOW_DIR="${CONDA}/share/zdb-${VERSION}/"
+# NOTE: sourced installs — NEXTFLOW_DIR now resolves to the checkout
+# directory that contains nextflow.config (see README "Installation from sources").
+NEXTFLOW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ $# == "0" || $1 == "help" ]]; then
 	echo "zDB (v${VERSION})"

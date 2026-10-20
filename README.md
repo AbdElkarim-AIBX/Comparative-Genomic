@@ -113,6 +113,39 @@ zdb run --input=input.csv --name=simple_run_conda --conda # runs the analysis
 zdb webapp --conda --name=simple_run_conda # Launches the webapp on the latest run
 ```
 
+### Running zDB directly from this repository (GitHub Codespaces / no Docker)
+
+If you are running zDB from sources (e.g. inside a GitHub Codespace) without Docker or
+apptainer, everything works in **conda mode** directly from the checked-out files:
+
+```bash
+# 0. one-time environment (Xvfb is required for tree rendering; Nextflow via conda env)
+sudo apt-get install -y xvfb
+conda env create -p ./env -f conda/main.yaml && export PATH=$PWD/env/bin:$PATH
+
+# 1. create the base database skeleton (once! - run commands below from the repo dir)
+nextflow run db_setup.nf --setup_base_db --base_db=$PWD/zdb_ref \
+    --docker=false --singularity=false --conda=true
+
+# 2. run the analysis on the shipped test dataset (5 Chlamydia trachomatis genomes)
+nextflow run annotation_pipeline.nf --input=input.csv --name=chlam_run \
+    --base_db=$PWD/zdb_ref --n_cpus=2 --mem=6G \
+    --docker=false --singularity=false --conda=true
+
+# 3. launch the webapp on the results
+bash bin/zdb webapp --name=chlam_run --conda --dir=$(pwd) \
+    --allowed_host=.app.github.dev \
+    --trusted_origins="https://${CODESPACE_NAME}-8080.app.github.dev"
+```
+
+Notes:
+- `--name` values are used as aliases in `zdb/results/.completed_runs/`; the underlying
+  nextflow session name (e.g. `loving_bassi`) is resolved automatically by `bin/zdb webapp`.
+- `-resume` re-runs an interrupted analysis without redoing completed tasks.
+- Docker and singularity are disabled in the commands above; keep them like this unless
+  these tools are actually available.
+
+
 To have a more complete set of analyses (includes cog and pfam annotation):
 ```
 conda install zdb -c conda-forge -c bioconda
