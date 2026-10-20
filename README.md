@@ -185,12 +185,15 @@ gh codespace ports visibility 8080:public -c $CODESPACE_NAME
 # The first launch builds the 'webapp' conda environment — takes a few minutes(!),
 # it is cached afterwards. --allowed_host/--trusted_origins are REQUIRED on
 # Codespaces: Django would otherwise reject the *.app.github.dev hostname.
-bash bin/zdb webapp \
-    --name=chlam_run \
-    --conda --dir=$(pwd) \
-    --allowed_host=.app.github.dev \
+bash bin/zdb webapp --name=chlam_run --conda --dir=$(pwd) \
+    --allowed_host="localhost,127.0.0.1,.app.github.dev" \
     --trusted_origins="https://${CODESPACE_NAME}-8080.app.github.dev"
 ```
+
+> ⚠️ `--allowed_host` must be **comma-separated within one quoted string** (the wrapper
+> expands args unquoted — spaces would break parsing), and **must include `localhost`**:
+> the Codespaces port proxy forwards requests with `Host: localhost:8080`, and Django
+> rejects unknown hosts with `DisallowedHost` otherwise.
 
 > ⚠️ `--name` here **must match** the `--name` you used in step 2!
 > If you never passed a `--name` in step 2, the webapp defaults to `--name=latest`,
@@ -255,7 +258,7 @@ nextflow run annotation_pipeline.nf --input=input.csv --name=chlam_run \
 ```bash
 # Optimum for the webapp (Codespaces: pass the allowed-host/CSRF flags as in step 3)
 bash bin/zdb webapp --name=chlam_run --conda --dir=$(pwd) \
-    --allowed_host=.app.github.dev \
+    --allowed_host="localhost,127.0.0.1,.app.github.dev" \
     --trusted_origins="https://${CODESPACE_NAME}-8080.app.github.dev"
 ```
 
@@ -304,7 +307,7 @@ tar -xzf test_dataset.tar.gz   # restores refs/*.gbk and the input.csv file
 >     --base_db=$PWD/zdb_ref --n_cpus=2 --mem=6G \
 >     --docker=false --singularity=false --conda=true       # the analysis
 > zdb webapp --name=chlam_run --conda --dir=$(pwd) \
->     --allowed_host=.app.github.dev \
+>     --allowed_host="localhost,127.0.0.1,.app.github.dev" \
 >     --trusted_origins="https://${CODESPACE_NAME}-8080.app.github.dev"  # the webapp
 > ```
 >
